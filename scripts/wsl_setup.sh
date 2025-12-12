@@ -30,8 +30,8 @@ sudo apt-get install -y \
     libopencv-dev \
     libdbus-1-3 \
     libgbm1 \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
+    libgl1 \
+    libglib2.0-0t64 \
     libglib2.0-dev \
     libssl-dev \
     libx11-dev \
@@ -95,7 +95,7 @@ fi
 # Install audio dependencies
 echo "[6/10] Installing audio dependencies (ALSA, PulseAudio, FFmpeg)..."
 sudo apt-get install -y \
-    libasound2 \
+    libasound2t64 \
     libasound2-plugins \
     alsa-utils \
     pulseaudio \
