@@ -11,7 +11,23 @@ logger = logging.getLogger(__name__)
 
 class StreamingUploader:
     def __init__(self, bucket, key, chunk_size=5242880):  # 5MB chunks
-        self.s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
+        from botocore.config import Config
+
+        # Configure S3 client with MinIO compatibility
+        endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        config = None
+        if endpoint_url:
+            # Use path-style addressing and s3v4 signature for MinIO
+            config = Config(s3={"addressing_style": "path"}, signature_version="s3v4")
+
+        self.s3_client = boto3.client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
+            config=config,
+        )
         self.bucket = bucket
         self.key = key
         self.chunk_size = chunk_size

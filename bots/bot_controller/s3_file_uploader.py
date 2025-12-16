@@ -28,10 +28,11 @@ class S3FileUploader:
         if addressing_style:
             config = Config(s3={"addressing_style": addressing_style}, signature_version="s3v4")
 
+        import os
         self.s3_client = boto3.client(
             "s3",
             endpoint_url=endpoint_url,
-            region_name=region_name,
+            region_name=region_name or os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
             aws_access_key_id=access_key_id,
             aws_secret_access_key=access_key_secret,
             config=config,
