@@ -38,6 +38,33 @@ CELERY_RESULT_BACKEND = REDIS_URL
 # Chrome sandbox setting for local development
 ENABLE_CHROME_SANDBOX = os.getenv("ENABLE_CHROME_SANDBOX", "false").lower() == "true"
 
+# MinIO/S3 Storage Configuration
+# MinIO requires path-style addressing (not virtual-hosted)
+if os.getenv("AWS_ENDPOINT_URL"):
+    import copy
+    _s3_options = {
+        "endpoint_url": os.getenv("AWS_ENDPOINT_URL"),
+        "access_key": os.getenv("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
+        "addressing_style": "path",  # Required for MinIO
+        "signature_version": "s3v4",
+    }
+    DEFAULT_STORAGE_BACKEND = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": _s3_options,
+    }
+    RECORDING_STORAGE_BACKEND = copy.deepcopy(DEFAULT_STORAGE_BACKEND)
+    RECORDING_STORAGE_BACKEND["OPTIONS"]["bucket_name"] = os.getenv("AWS_RECORDING_STORAGE_BUCKET_NAME")
+
+    STORAGES = {
+        "default": DEFAULT_STORAGE_BACKEND,
+        "recordings": RECORDING_STORAGE_BACKEND,
+        "bot_debug_screenshots": RECORDING_STORAGE_BACKEND,
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 # Log more stuff in development
 LOGGING = {
     "version": 1,
