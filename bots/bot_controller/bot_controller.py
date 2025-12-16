@@ -510,6 +510,9 @@ class BotController:
             bucket=settings.AWS_RECORDING_STORAGE_BUCKET_NAME,
             filename=self.get_recording_filename(),
             endpoint_url=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("endpoint_url"),
+            access_key_id=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("access_key"),
+            access_key_secret=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("secret_key"),
+            addressing_style=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("addressing_style"),
         )
 
     def cleanup(self):

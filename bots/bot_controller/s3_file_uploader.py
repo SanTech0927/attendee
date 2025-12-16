@@ -9,14 +9,33 @@ logger.setLevel(logging.INFO)
 
 
 class S3FileUploader:
-    def __init__(self, bucket, filename, endpoint_url=None, region_name=None, access_key_id=None, access_key_secret=None):
+    def __init__(self, bucket, filename, endpoint_url=None, region_name=None, access_key_id=None, access_key_secret=None, addressing_style=None):
         """Initialize the S3FileUploader with an S3 bucket name.
 
         Args:
             bucket (str): The name of the S3 bucket to upload to
             filename (str): The name of the to be stored file
+            endpoint_url (str, optional): Custom endpoint URL (e.g., for MinIO)
+            region_name (str, optional): AWS region name
+            access_key_id (str, optional): AWS access key ID
+            access_key_secret (str, optional): AWS secret access key
+            addressing_style (str, optional): S3 addressing style ('path' for MinIO, 'virtual' for AWS)
         """
-        self.s3_client = boto3.client("s3", endpoint_url=endpoint_url, region_name=region_name, aws_access_key_id=access_key_id, aws_secret_access_key=access_key_secret)
+        from botocore.config import Config
+
+        # Configure S3 client with optional path-style addressing for MinIO compatibility
+        config = None
+        if addressing_style:
+            config = Config(s3={"addressing_style": addressing_style}, signature_version="s3v4")
+
+        self.s3_client = boto3.client(
+            "s3",
+            endpoint_url=endpoint_url,
+            region_name=region_name,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=access_key_secret,
+            config=config,
+        )
         self.bucket = bucket
         self.filename = filename
         self._upload_thread = None
