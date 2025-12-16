@@ -63,8 +63,19 @@ class S3FileUploader:
             if not file_path.exists():
                 raise FileNotFoundError(f"File not found: {file_path}")
 
+            # Determine content type based on file extension
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(str(file_path))
+            extra_args = {}
+            if content_type:
+                extra_args['ContentType'] = content_type
+            elif file_path.suffix.lower() == '.mp4':
+                extra_args['ContentType'] = 'video/mp4'
+            elif file_path.suffix.lower() == '.webm':
+                extra_args['ContentType'] = 'video/webm'
+
             # Upload the file using S3's multipart upload functionality
-            self.s3_client.upload_file(str(file_path), self.bucket, self.filename)
+            self.s3_client.upload_file(str(file_path), self.bucket, self.filename, ExtraArgs=extra_args)
 
             logger.info(f"Successfully uploaded {file_path} to s3://{self.bucket}/{self.filename}")
 

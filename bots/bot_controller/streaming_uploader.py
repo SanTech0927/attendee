@@ -80,12 +80,24 @@ class StreamingUploader:
             self.buffer = BytesIO()
             self.buffer.write(remaining)
 
+    def _get_content_type(self):
+        """Determine content type based on file extension"""
+        import mimetypes
+        content_type, _ = mimetypes.guess_type(self.key)
+        if content_type:
+            return content_type
+        if self.key.lower().endswith('.mp4'):
+            return 'video/mp4'
+        if self.key.lower().endswith('.webm'):
+            return 'video/webm'
+        return 'application/octet-stream'
+
     def complete_upload(self):
         # If we never started a multipart upload (len(self.parts) == 0), do a regular upload
         if len(self.parts) == 0:
             self.buffer.seek(0)
             data = self.buffer.getvalue()
-            self.s3_client.put_object(Bucket=self.bucket, Key=self.key, Body=data)
+            self.s3_client.put_object(Bucket=self.bucket, Key=self.key, Body=data, ContentType=self._get_content_type())
             logger.info("len(self.parts) == 0, so did a regular upload")
             return
 
@@ -110,5 +122,9 @@ class StreamingUploader:
 
     def start_upload(self):
         """Initialize the multipart upload and get the upload ID"""
-        response = self.s3_client.create_multipart_upload(Bucket=self.bucket, Key=self.key)
+        response = self.s3_client.create_multipart_upload(
+            Bucket=self.bucket,
+            Key=self.key,
+            ContentType=self._get_content_type()
+        )
         self.upload_id = response["UploadId"]
