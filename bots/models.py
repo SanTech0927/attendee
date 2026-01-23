@@ -1955,6 +1955,9 @@ class Recording(models.Model):
         if settings.STORAGE_PROTOCOL == "azure":
             return self.file.url
 
+        if settings.STORAGE_PROTOCOL == "local":
+            return self.file.url
+
         # Generate a temporary signed URL that expires in 30 minutes (1800 seconds)
         return self.file.storage.bucket.meta.client.generate_presigned_url(
             "get_object",
@@ -2649,6 +2652,9 @@ class BotDebugScreenshot(models.Model):
             return None
 
         if settings.STORAGE_PROTOCOL == "azure":
+            return self.file.url
+
+        if settings.STORAGE_PROTOCOL == "local":
             return self.file.url
 
         # Generate a temporary signed URL that expires in 30 minutes (1800 seconds)

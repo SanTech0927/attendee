@@ -506,6 +506,10 @@ class BotController:
                 account_name=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("account_name"),
             )
 
+        if settings.STORAGE_PROTOCOL == "local":
+            from .local_file_uploader import LocalFileUploader
+            return LocalFileUploader(filename=self.get_recording_filename())
+
         return S3FileUploader(
             bucket=settings.AWS_RECORDING_STORAGE_BUCKET_NAME,
             filename=self.get_recording_filename(),

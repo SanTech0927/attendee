@@ -38,9 +38,42 @@ CELERY_RESULT_BACKEND = REDIS_URL
 # Chrome sandbox setting for local development
 ENABLE_CHROME_SANDBOX = os.getenv("ENABLE_CHROME_SANDBOX", "false").lower() == "true"
 
-# MinIO/S3 Storage Configuration
-# MinIO requires path-style addressing (not virtual-hosted)
-if os.getenv("AWS_ENDPOINT_URL"):
+# Storage Configuration
+# Set USE_LOCAL_STORAGE=true in .env to use local filesystem instead of S3/MinIO
+USE_LOCAL_STORAGE = os.getenv("USE_LOCAL_STORAGE", "false").lower() == "true"
+
+if USE_LOCAL_STORAGE:
+    # Local filesystem storage
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+    MEDIA_URL = "/media/"
+
+    # Ensure media directories exist
+    os.makedirs(os.path.join(MEDIA_ROOT, "recordings"), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, "screenshots"), exist_ok=True)
+
+    LOCAL_STORAGE_BACKEND = {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
+        },
+    }
+
+    STORAGES = {
+        "default": LOCAL_STORAGE_BACKEND,
+        "recordings": LOCAL_STORAGE_BACKEND,
+        "bot_debug_screenshots": LOCAL_STORAGE_BACKEND,
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    # Flag for bot controller to use local storage
+    STORAGE_PROTOCOL = "local"
+
+elif os.getenv("AWS_ENDPOINT_URL"):
+    # MinIO/S3 Storage Configuration
+    # MinIO requires path-style addressing (not virtual-hosted)
     import copy
     _s3_options = {
         "endpoint_url": os.getenv("AWS_ENDPOINT_URL"),

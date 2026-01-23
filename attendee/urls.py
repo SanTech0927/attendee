@@ -69,3 +69,8 @@ if settings.DEBUG:
             name="redoc",
         ),
     ]
+
+    # Serve media files in development (for local storage)
+    from django.conf.urls.static import static
+    if hasattr(settings, "MEDIA_URL") and hasattr(settings, "MEDIA_ROOT"):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
